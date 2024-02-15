@@ -3279,7 +3279,7 @@ Transform:
   m_GameObject: {fileID: 961739749}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.2, z: 0}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6867,11 +6867,11 @@ MonoBehaviour:
   enemyAmbiance: {fileID: 1947962887}
   exitActivate: {fileID: 1675835099}
   speed: 10
-  lookSpeed: 0.15
   countText: {fileID: 1095524045}
   winGoal: {fileID: 742600349}
   winTextObject: {fileID: 1346663437}
-  mainCamera: {fileID: 961739749}
+  mainCamera: {fileID: 961739752}
+  lookSpeed: 0.2
 --- !u!81 &2044317312
 AudioListener:
   m_ObjectHideFlags: 0
