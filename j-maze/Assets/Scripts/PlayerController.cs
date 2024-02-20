@@ -7,6 +7,8 @@ using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.SocialPlatforms.Impl;
 using System.Linq;
+using System;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -16,6 +18,7 @@ public class PlayerController : MonoBehaviour
     public AudioSource greenCubeEat;
     public AudioSource enemyAmbiance;
     public AudioSource exitActivate;
+    public AudioSource alertSound;
     private Rigidbody rb;
 
     private int count;
@@ -33,7 +36,34 @@ public class PlayerController : MonoBehaviour
     public InputActions input;
     private InputAction move;
     private InputAction look;
+    private Transform playerTransform;
+    public GameObject cautionOverlay;
+    void Update()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("LethalEnemy");
+        Transform[] enemyTransforms = Array.ConvertAll(enemies, enemy => enemy.transform);
 
+        float smallestDistance = GetSmallestDistanceToEnemy(playerTransform, enemyTransforms);
+
+        if (smallestDistance != float.MaxValue)
+        {
+            ApplyCameraEffect(Camera.main, smallestDistance);
+            UpdateCautionOverlay(smallestDistance);
+
+            // Play the alert sound if the enemy is less than  4 units away
+            if (smallestDistance < 4f && (!alertSound.isPlaying) && (alertSound!=null))
+            {
+                alertSound.Play();
+            }
+        }
+        else
+        {
+            Camera.main.fieldOfView = 90f;
+            // Reset the overlay to fully transparent when no enemy is close
+            RawImage rawImage = cautionOverlay.GetComponent<RawImage>();
+            rawImage.color = new Color(rawImage.color.r, rawImage.color.g, rawImage.color.b, 0f);
+        }
+    }
     private void Awake()
     {
         input = new InputActions();
@@ -51,7 +81,6 @@ public class PlayerController : MonoBehaviour
         look.performed += OnLook;
         move.canceled += OnMove;
 
-        // Lock the cursor
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -73,22 +102,26 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerTransform = player.transform;
+        }
         rb = GetComponent<Rigidbody>();
         count = 0;
         SetCountText();
         winGoal.SetActive(false);
         winTextObject.SetActive(false);
         gameOverImage.SetActive(false);
+        
     }
     void OnMove(InputAction.CallbackContext context)
     {
-        // Check the phase of the input action
         if (context.phase == InputActionPhase.Performed)
         {
             // Button was pressed, read the movement value from the context.
             Vector2 movementVector = context.ReadValue<Vector2>();
 
-            // Store the X and Y components of the movement.
             movementX = movementVector.x;
             movementY = movementVector.y;
         }
@@ -106,7 +139,6 @@ public class PlayerController : MonoBehaviour
         // Read the look value from the context.
         Vector2 lookVector = context.ReadValue<Vector2>();
 
-        // Store the X and Y components of the look.
         lookX = lookVector.x;
         lookY = lookVector.y;
 
@@ -127,10 +159,10 @@ public class PlayerController : MonoBehaviour
         cameraRight.Normalize();
 
         Vector3 movement = cameraForward * movementY + cameraRight * movementX;
-        movement.Normalize(); // Normalize to prevent faster diagonal movement
+        movement.Normalize();
 
         rb.AddForce(movement * speed);
-        // Add constant gravity force.
+        // Double constant gravity force.
         rb.AddForce(Physics.gravity * rb.mass);
     }
 
@@ -150,7 +182,7 @@ public class PlayerController : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("LethalEnemy"))
         {
-            
+            cautionOverlay.SetActive(false);
             if ((enemyKill != null) && (!enemyKill.isPlaying))
                 enemyKill.Play();
             winGoal.SetActive(false);
@@ -197,5 +229,54 @@ public class PlayerController : MonoBehaviour
             winGoal.SetActive(true);
         }
     }
-    
+    private float GetSmallestDistanceToEnemy(Transform player, Transform[] enemies)
+    {
+        float smallestDistance = float.MaxValue;
+
+        foreach (Transform enemy in enemies)
+        {
+            Vector3 directionToEnemy = (enemy.position - player.position).normalized;
+            float distanceToEnemy = Vector3.Distance(player.position, enemy.position);
+
+            RaycastHit hit;
+            if (Physics.Raycast(player.position, directionToEnemy, out hit, distanceToEnemy))
+            {
+                if (hit.transform == enemy)
+                {
+                    // Update the smallest distance if the current enemy is closer
+                    smallestDistance = Mathf.Min(smallestDistance, distanceToEnemy);
+                }
+            }
+        }
+
+        if (smallestDistance == float.MaxValue)
+        {
+            return float.MaxValue;
+        }
+
+        return smallestDistance;
+    }
+    private void ApplyCameraEffect(Camera camera, float distanceToEnemy)
+    {
+        float maxFOV = 50f;
+        float baseFOV = 90f;
+
+        // FOV to be maxFOV when the enemy is 5 or more units away,
+        // and the FOV should gradually decreases as the enemy gets closer to 1 unit away.
+        float fovChange = Mathf.Clamp01((5f - distanceToEnemy) / (5f - 1f));
+
+        float newFOV = Mathf.Lerp(baseFOV, maxFOV, fovChange);
+
+        camera.fieldOfView = newFOV;
+    }
+    private void UpdateCautionOverlay(float distanceToEnemy)
+    {
+
+        RawImage rawImage = cautionOverlay.GetComponent<RawImage>();
+        
+        float opacity = Mathf.Clamp01((5f - distanceToEnemy) / (5f - 1f));
+
+        rawImage.color = new Color(rawImage.color.r, rawImage.color.g, rawImage.color.b, opacity);
+    }
+
 }
