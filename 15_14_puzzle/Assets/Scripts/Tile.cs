@@ -9,11 +9,10 @@ public class Tile : MonoBehaviour
     {
         return isEmpty;
     }
-
     public bool CanMoveTo(Vector3 targetPosition)
     {
         float distance = Vector3.Distance(transform.position, targetPosition);
-        return distance<10.5;
+        return distance<1.1;
     }
 
     public void SwapWith(Tile other)
@@ -26,10 +25,10 @@ public class Tile : MonoBehaviour
     public Tile GetRandomNeighbourTile(Tile[,] tiles)
     {
         List<Tile> neighbours = new List<Tile>();
-        int x = (int)(transform.position.x + 15) / 10;
-        int z = (int)(transform.position.z + 15) / 10;
+        int x = (int)(transform.position.x + 0.5) - 1;
+        int z = (int)(transform.position.z + 0.5) - 1;
 
-        // Check if the tile to the left is within bounds and can be moved to
+        
         if (x > 0 && tiles[x - 1, z] != null && tiles[x - 1, z].CanMoveTo(transform.position)) neighbours.Add(tiles[x - 1, z]); // Left
                                                                                                                                
         if (x < tiles.GetLength(0) - 1 && tiles[x + 1, z] != null && tiles[x + 1, z].CanMoveTo(transform.position)) neighbours.Add(tiles[x + 1, z]); // Right
@@ -44,8 +43,8 @@ public class Tile : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No valid neighbour tiles found for tile at position: " + transform.position);
-            return null; // No neighbours found
+            Debug.LogError("No valid neighbour for tile at position: " + transform.position);
+            return null; 
         }
     }
 }
