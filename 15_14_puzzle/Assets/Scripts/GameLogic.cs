@@ -12,14 +12,14 @@ public class GameLogic : MonoBehaviour
         /*for (int i = 0; i < tileObjects.Length; i++)
         {
             Tile tile = tileObjects[i].GetComponent<Tile>();
-            tiles[((int)tile.transform.position.x + 15)/10, ((int)tile.transform.position.z + 15) / 10] = tile;
+            tiles[((int)tile.transform.position.x + 0.5)-1, ((int)tile.transform.position.z + 0.5) - 1] = tile;
         }*/
         InitializePuzzle();
     }
 
     void InitializePuzzle()
     {
-        emptyTile = tiles[3, 0];
+        emptyTile = tiles[3, 3];
         for (int i = 0; i < 0; i++)
         {
             Tile randomNeighbour = emptyTile.GetRandomNeighbourTile(tiles);
@@ -38,7 +38,7 @@ public class GameLogic : MonoBehaviour
         {
             // Calculate which tile the player is trying to move
             Vector3 mousePosition = Input.mousePosition;
-            float depth = 39.0f; // Adjust this value to the height of your tiles
+            float depth = 8.0f; // Adjust this value to the height of your tiles
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, depth));
             Debug.Log(worldPosition);
             Tile clickedTile = GetTileAtPosition(worldPosition);
@@ -62,7 +62,7 @@ public class GameLogic : MonoBehaviour
         {
             for (int z = 0; z < 4; z++)
             {
-                if (tiles[x, z].transform.position != new Vector3(x * 10 - 15, 0, z * 10 - 15))
+                if (tiles[x, z].transform.position != new Vector3(x + 0.5f, 0, z + 0.5f))
                 {
                     return false;
                 }
@@ -91,7 +91,7 @@ public class GameLogic : MonoBehaviour
         {
             for (int z = 0; z < 4; z++)
             {
-                if ((Mathf.Abs(tiles[x, z].transform.position.x - position.x) < 4.5f) && (Mathf.Abs(tiles[x, z].transform.position.z - position.z) < 4.5f))
+                if ((Mathf.Abs(tiles[x, z].transform.position.x - position.x) < 0.5f) && (Mathf.Abs(tiles[x, z].transform.position.z - position.z) < 0.5f))
                 {
                     return tiles[x, z];
                 }
