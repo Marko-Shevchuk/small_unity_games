@@ -9,7 +9,6 @@ public class Tile : MonoBehaviour
     {
         return isEmpty;
     }
-
     public bool CanMoveTo(Vector3 targetPosition)
     {
         float distance = Vector3.Distance(transform.position, targetPosition);
@@ -44,7 +43,7 @@ public class Tile : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No valid neighbour tiles found for tile at position: " + transform.position);
+            Debug.LogError("No valid neighbour for tile at position: " + transform.position);
             return null; 
         }
     }

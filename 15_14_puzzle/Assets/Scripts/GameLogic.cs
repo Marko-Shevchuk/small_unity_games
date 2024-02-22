@@ -36,21 +36,21 @@ public class GameLogic : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            // Calculate which tile the player is trying to move
+
             Vector3 mousePosition = Input.mousePosition;
-            float depth = 8.0f; // Adjust this value to the height of your tiles
+            float depth = 8.0f; // Adjust this value to the height 
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, depth));
             Debug.Log(worldPosition);
             Tile clickedTile = GetTileAtPosition(worldPosition);
-            Debug.Log("old empty tile pos ");
+            Debug.Log("old empty tile position ");
             Debug.Log(emptyTile.transform.position);
-            // Check if the clicked tile is adjacent to the empty tile
+
             if (clickedTile != null && clickedTile.CanMoveTo(emptyTile.transform.position))
             {
                 tempTile = clickedTile;
                 clickedTile.SwapWith(emptyTile);
                 emptyTile = tempTile;
-                Debug.Log("new empty tile pos ");
+                Debug.Log("new empty tile position ");
                 Debug.Log(emptyTile.transform.position);
             }
         }
@@ -77,7 +77,6 @@ public class GameLogic : MonoBehaviour
         int z = Random.Range(0, 4);
         return tiles[x, z];
     }
-
     void SwapTiles(Tile tile1, Tile tile2)
     {
         Vector3 tempPosition = tile1.transform.position;
