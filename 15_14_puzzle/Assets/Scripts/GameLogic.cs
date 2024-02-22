@@ -55,7 +55,6 @@ public class GameLogic : MonoBehaviour
             }
         }
     }
-
     bool IsPuzzleSolved()
     {
         for (int x = 0; x < 4; x++)
@@ -73,6 +72,7 @@ public class GameLogic : MonoBehaviour
 
     Tile GetRandomTile()
     {
+        //only within the board
         int x = Random.Range(0, 4);
         int z = Random.Range(0, 4);
         return tiles[x, z];
@@ -82,6 +82,7 @@ public class GameLogic : MonoBehaviour
         Vector3 tempPosition = tile1.transform.position;
         tile1.transform.position = tile2.transform.position;
         tile2.transform.position = tempPosition;
+        //position only
     }
 
     Tile GetTileAtPosition(Vector3 position)
