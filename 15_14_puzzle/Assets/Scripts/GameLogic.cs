@@ -1,5 +1,6 @@
+using Unity.VisualScripting;
 using UnityEngine;
-
+using UnityEngine.UI;
 public class GameLogic : MonoBehaviour
 {
     public Tile[,] tiles = new Tile[4, 4];
@@ -9,11 +10,24 @@ public class GameLogic : MonoBehaviour
     {
         GameObject[] tileObjects = GameObject.FindGameObjectsWithTag("Tile");
         // Initialize the tiles array with the found GameObjects
-        /*for (int i = 0; i < tileObjects.Length; i++)
+        for (int i = 0; i < tileObjects.Length; i++)
         {
             Tile tile = tileObjects[i].GetComponent<Tile>();
-            tiles[((int)tile.transform.position.x + 0.5)-1, ((int)tile.transform.position.z + 0.5) - 1] = tile;
-        }*/
+            tiles[(int)((tile.transform.position.x + 0.5f) - 1), ((int)((tile.transform.position.z + 0.5f) - 1))] = tile;
+            Debug.Log((int)((tile.transform.position.x + 0.5f) - 1));
+            Debug.Log((int)((tile.transform.position.z + 0.5f) - 1));
+            Debug.Log("TileNumbers/" + ((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1) + "/" + Random.Range(0, 8) + ".jpg");
+            if(((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1)<10)
+            {
+                tiles[((int)((tile.transform.position.x + 0.5f) - 1)), (int)((tile.transform.position.z + 0.5f) - 1)].tileNumberImage.sprite = Resources.Load<Sprite>("TileNumbers/" + ((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1) + "/" + Random.Range(0, 8) + ".jpg");
+
+            }
+            else
+            {
+                tiles[((int)((tile.transform.position.x + 0.5f) - 1)), (int)((tile.transform.position.z + 0.5f) - 1)].tileNumberImage.sprite = Resources.Load<Sprite>("TileNumbers/" + ((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1) + "/" + Random.Range(0, 4) + ".jpg");
+
+            }
+        }
         InitializePuzzle();
     }
 
@@ -28,7 +42,7 @@ public class GameLogic : MonoBehaviour
                 SwapTiles(emptyTile, randomNeighbour);
                 emptyTile = randomNeighbour;
             }
- 
+
         }
     }
 
@@ -44,15 +58,18 @@ public class GameLogic : MonoBehaviour
             Tile clickedTile = GetTileAtPosition(worldPosition);
             Debug.Log("old empty tile position ");
             Debug.Log(emptyTile.transform.position);
-
-            if (clickedTile != null && clickedTile.CanMoveTo(emptyTile.transform.position))
+            if (clickedTile != null)
             {
-                tempTile = clickedTile;
-                clickedTile.SwapWith(emptyTile);
-                emptyTile = tempTile;
-                Debug.Log("new empty tile position ");
-                Debug.Log(emptyTile.transform.position);
+                Debug.Log("clicked tile position ");
+                Debug.Log(clickedTile.transform.position);
+                if (clickedTile != null && clickedTile.CanMoveTo(emptyTile.transform.position))
+                {
+                    SwapTiles(clickedTile, emptyTile);
+                    Debug.Log("new empty tile position ");
+                    Debug.Log(emptyTile.transform.position);
+                }
             }
+            
         }
     }
     bool IsPuzzleSolved()
@@ -61,7 +78,7 @@ public class GameLogic : MonoBehaviour
         {
             for (int z = 0; z < 4; z++)
             {
-                if (tiles[x, z].transform.position != new Vector3(x + 0.5f, 0, z + 0.5f))
+                if (tiles[x, z].transform.position != new Vector3(x + 0.5f, 0.25f, z + 0.5f))
                 {
                     return false;
                 }
@@ -91,7 +108,7 @@ public class GameLogic : MonoBehaviour
         {
             for (int z = 0; z < 4; z++)
             {
-                if ((Mathf.Abs(tiles[x, z].transform.position.x - position.x) < 0.5f) && (Mathf.Abs(tiles[x, z].transform.position.z - position.z) < 0.5f))
+                if ((Mathf.Abs(tiles[x, z].transform.position.x - position.x) < 0.25f) && (Mathf.Abs(tiles[x, z].transform.position.z - position.z) < 0.25f))
                 {
                     return tiles[x, z];
                 }

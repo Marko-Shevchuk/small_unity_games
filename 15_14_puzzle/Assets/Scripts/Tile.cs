@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 public class Tile : MonoBehaviour
 {
     public bool isEmpty;
-
+    public Image tileNumberImage;
     public bool IsEmpty()
     {
         return isEmpty;
@@ -15,12 +15,7 @@ public class Tile : MonoBehaviour
         return distance<1.1;
     }
 
-    public void SwapWith(Tile other)
-    {
-        Vector3 tempPosition = transform.position;
-        transform.position = other.transform.position;
-        other.transform.position = tempPosition;
-    }
+
 
     public Tile GetRandomNeighbourTile(Tile[,] tiles)
     {
