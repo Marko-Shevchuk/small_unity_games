@@ -3,14 +3,22 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
     public bool isEmpty;
-    private SpriteRenderer spriteRenderer;
+    private AudioSource tap;
+
+
     void Start()
     {
-        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        tap = GetComponent<AudioSource>();
     }
-    public void ChangeSprite(Sprite newSprite)
+    public void playTap()
     {
-        spriteRenderer.sprite = newSprite;
+
+        if (tap != null)
+        {
+            tap.Stop();
+            tap.Play();
+        }
+
     }
     public bool IsEmpty()
     {
@@ -19,7 +27,7 @@ public class Tile : MonoBehaviour
     public bool CanMoveTo(Vector3 targetPosition)
     {
         float distance = Vector3.Distance(transform.position, targetPosition);
-        return distance<1.1;
+        return distance<1.1 && distance > 0;
     }
 
 
@@ -30,15 +38,11 @@ public class Tile : MonoBehaviour
         int x = (int)(transform.position.x + 0.5) - 1;
         int z = (int)(transform.position.z + 0.5) - 1;
 
-        
-        if (x > 0 && tiles[x - 1, z] != null && tiles[x - 1, z].CanMoveTo(transform.position)) neighbours.Add(tiles[x - 1, z]); // Left
-                                                                                                                               
-        if (x < tiles.GetLength(0) - 1 && tiles[x + 1, z] != null && tiles[x + 1, z].CanMoveTo(transform.position)) neighbours.Add(tiles[x + 1, z]); // Right
-                                                                                                                                               
-        if (z > 0 && tiles[x, z - 1] != null && tiles[x, z - 1].CanMoveTo(transform.position)) neighbours.Add(tiles[x, z - 1]); // Up
-                                                                                                                       
-        if (z < tiles.GetLength(1) -1 && tiles[x, z + 1] != null && tiles[x, z + 1].CanMoveTo(transform.position)) neighbours.Add(tiles[x, z + 1]); // Down
-
+        for (int i = 0; i< tiles.Length; i++)
+        {
+            if ( (tiles[i / 4, i % 4] != null) && tiles[i / 4, i % 4].CanMoveTo(transform.position)) neighbours.Add(tiles[i / 4, i % 4]);
+        }
+  
         if (neighbours.Count > 0)
         {
             return neighbours[Random.Range(0, neighbours.Count)];
