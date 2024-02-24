@@ -1,3 +1,4 @@
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,28 +6,36 @@ public class GameLogic : MonoBehaviour
 {
     public Tile[,] tiles = new Tile[4, 4];
     private Tile emptyTile;
-    private Tile tempTile;
+    public TextMeshProUGUI winText;
+    public TextMeshProUGUI moveText;
+    private int moveCount = 0;
     void Start()
     {
         GameObject[] tileObjects = GameObject.FindGameObjectsWithTag("Tile");
         // Initialize the tiles array with the found GameObjects
-        for (int i = 0; i < tileObjects.Length; i++)
+        for (int i = 0, x,z; i < tileObjects.Length; i++)
         {
             Tile tile = tileObjects[i].GetComponent<Tile>();
-            tiles[(int)((tile.transform.position.x + 0.5f) - 1), ((int)((tile.transform.position.z + 0.5f) - 1))] = tile;
-            Debug.Log((int)((tile.transform.position.x + 0.5f) - 1));
-            Debug.Log((int)((tile.transform.position.z + 0.5f) - 1));
-            Debug.Log("TileNumbers/" + ((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1) + "/" + Random.Range(0, 8) + ".jpg");
-            if(((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1)<10)
+            x = (int)((tile.transform.position.x + 0.5f) - 1);
+            z = (int)((tile.transform.position.z + 0.5f) - 1);
+            Debug.Log(x);
+            Debug.Log(z);
+            string spritePath = "TileNumbers/" + (int)(z + x * 4 + 1) + "/" + Random.Range(0, 4);
+            Debug.Log(spritePath);
+            /*if(z + x * 4 + 1<10)*/
+            Sprite newSprite = Resources.Load<Sprite>(spritePath);
+            if (newSprite != null)
             {
-                tiles[((int)((tile.transform.position.x + 0.5f) - 1)), (int)((tile.transform.position.z + 0.5f) - 1)].tileNumberImage.sprite = Resources.Load<Sprite>("TileNumbers/" + ((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1) + "/" + Random.Range(0, 8) + ".jpg");
-
+                tile.transform.Find("ImageSprite").GetComponent<SpriteRenderer>().sprite = newSprite;
             }
             else
             {
-                tiles[((int)((tile.transform.position.x + 0.5f) - 1)), (int)((tile.transform.position.z + 0.5f) - 1)].tileNumberImage.sprite = Resources.Load<Sprite>("TileNumbers/" + ((int)((tile.transform.position.z + 0.5f) - 1) + (int)((tile.transform.position.x + 0.5f) - 1) * 4 + 1) + "/" + Random.Range(0, 4) + ".jpg");
+                Debug.Log("No sprite found ");
 
             }
+            Debug.Log(spritePath);
+
+            tiles[x, z] = tile;
         }
         InitializePuzzle();
     }
@@ -34,13 +43,13 @@ public class GameLogic : MonoBehaviour
     void InitializePuzzle()
     {
         emptyTile = tiles[3, 3];
-        for (int i = 0; i < 0; i++)
+        for (int i = 0; i < 20; i++)
         {
             Tile randomNeighbour = emptyTile.GetRandomNeighbourTile(tiles);
             if (randomNeighbour != null)
             {
                 SwapTiles(emptyTile, randomNeighbour);
-                emptyTile = randomNeighbour;
+                
             }
 
         }
@@ -64,12 +73,18 @@ public class GameLogic : MonoBehaviour
                 Debug.Log(clickedTile.transform.position);
                 if (clickedTile != null && clickedTile.CanMoveTo(emptyTile.transform.position))
                 {
+                    moveCount++;
+                    moveText.text = "Moves: " + moveCount;
                     SwapTiles(clickedTile, emptyTile);
                     Debug.Log("new empty tile position ");
                     Debug.Log(emptyTile.transform.position);
                 }
             }
             
+        }
+        if (IsPuzzleSolved())
+        {
+            winText.gameObject.SetActive(true);
         }
     }
     bool IsPuzzleSolved()
@@ -86,7 +101,7 @@ public class GameLogic : MonoBehaviour
         }
         return true;
     }
-
+    
     Tile GetRandomTile()
     {
         //only within the board
@@ -108,7 +123,7 @@ public class GameLogic : MonoBehaviour
         {
             for (int z = 0; z < 4; z++)
             {
-                if ((Mathf.Abs(tiles[x, z].transform.position.x - position.x) < 0.25f) && (Mathf.Abs(tiles[x, z].transform.position.z - position.z) < 0.25f))
+                if ((Mathf.Abs(tiles[x, z].transform.position.x - position.x) < 0.45f) && (Mathf.Abs(tiles[x, z].transform.position.z - position.z) < 0.45f))
                 {
                     return tiles[x, z];
                 }

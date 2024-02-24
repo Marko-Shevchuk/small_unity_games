@@ -1,10 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 public class Tile : MonoBehaviour
 {
     public bool isEmpty;
-    public Image tileNumberImage;
+    private SpriteRenderer spriteRenderer;
+    void Start()
+    {
+        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+    }
+    public void ChangeSprite(Sprite newSprite)
+    {
+        spriteRenderer.sprite = newSprite;
+    }
     public bool IsEmpty()
     {
         return isEmpty;
