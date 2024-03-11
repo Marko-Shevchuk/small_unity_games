@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
     public GameObject winGoal;
     public GameObject winTextObject;
     public Camera mainCamera; 
-    public float lookSpeed = 2f;
+    public float lookSpeed = 0.2f;
 
     public InputActions input;
     private InputAction move;
