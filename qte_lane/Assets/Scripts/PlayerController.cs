@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Windows;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     public Camera mainCamera;
@@ -13,26 +9,23 @@ public class PlayerController : MonoBehaviour
     public PlayerControls input;
     private InputAction move;
     private InputAction look;
+    private InputAction jump; 
     private float lookX;
     private float lookY;
     private float movementX;
     private float movementY;
-    public float lookSpeed = 2f;
+    public float lookSpeed = 0.15f;
+    public float speed = 5f;
+    public float jumpPower = 1f;
+    public float gravity = 9.81f; 
 
+    CharacterController characterController;
 
-    public float speed = 3f;
-
-    private Rigidbody rb;
-
-    // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        
+        characterController = GetComponent<CharacterController>();
     }
 
-    // Update is called once per frame
-   
     private void Awake()
     {
         input = new PlayerControls();
@@ -48,7 +41,9 @@ public class PlayerController : MonoBehaviour
         look = input.Player.Look;
         look.Enable();
         look.performed += OnLook;
-        move.canceled += OnMove;
+        jump = input.Player.Jump; 
+        jump.Enable();
+        jump.performed += OnJump;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -58,53 +53,58 @@ public class PlayerController : MonoBehaviour
     {
         move.Disable();
         move.performed -= OnMove;
-        move.canceled -= OnMove; // Unsubscribe from the 'canceled' event
+        move.canceled -= OnMove;
         look.Disable();
         look.performed -= OnLook;
-        look.canceled -= OnLook;
+        jump.Disable();
+        jump.performed -= OnJump;
 
-        // Reset cursor state
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
- 
 
     void OnMove(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
         {
-            // Button was pressed, read the movement value from the context.
             Vector2 movementVector = context.ReadValue<Vector2>();
-
             movementX = movementVector.x;
             movementY = movementVector.y;
         }
         else if (context.phase == InputActionPhase.Canceled)
         {
-            // Button was released, reset the movement values.
             movementX = 0;
             movementY = 0;
         }
     }
 
-
     void OnLook(InputAction.CallbackContext context)
     {
-        // Read the look value from the context.
         Vector2 lookVector = context.ReadValue<Vector2>();
-
         lookX = lookVector.x;
         lookY = lookVector.y;
 
-        // Adjust the camera rotation based on look input
         float rotationX = mainCamera.transform.localEulerAngles.y + lookX * lookSpeed;
         float rotationY = mainCamera.transform.localEulerAngles.x - lookY * lookSpeed;
         mainCamera.transform.localEulerAngles = new Vector3(rotationY, rotationX, 0);
     }
 
-    void FixedUpdate()
+    void OnJump(InputAction.CallbackContext context)
     {
-        // Transform movement input relative to camera rotation
+        if (context.phase == InputActionPhase.Performed && characterController.isGrounded)
+        {
+            // Apply jump force
+            Vector3 jumpDirection = new Vector3(0, jumpPower, 0);
+            characterController.Move(jumpDirection);
+        }
+        else if (context.phase == InputActionPhase.Canceled)
+        {
+            
+        }
+    }
+
+    void Update()
+    {
         Vector3 cameraForward = mainCamera.transform.forward;
         Vector3 cameraRight = mainCamera.transform.right;
         cameraForward.y = 0;
@@ -115,8 +115,12 @@ public class PlayerController : MonoBehaviour
         Vector3 movement = cameraForward * movementY + cameraRight * movementX;
         movement.Normalize();
 
-        rb.AddForce(movement * speed);
-        // Double constant gravity force.
-        rb.AddForce(Physics.gravity * rb.mass);
+       
+            // Adjust for gravity
+        movement.y -= gravity * Time.deltaTime;
+        
+
+        // Apply movement using CharacterController
+        characterController.Move(movement * speed * Time.deltaTime);
     }
 }
