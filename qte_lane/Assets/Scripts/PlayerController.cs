@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
-[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     public Camera mainCamera;
@@ -16,11 +16,14 @@ public class PlayerController : MonoBehaviour
     private float movementY;
     public float lookSpeed = 0.15f;
     public float speed = 5f;
-    public float jumpPower = 1f;
-    public float gravity = 9.81f; 
-
+    public float jumpPower = 10f;
+    public float gravity = 0.981f;
+    private Vector3 gravityForce = Vector3.zero;
     CharacterController characterController;
 
+    private bool jumping = false;
+    private float jumpTime = 0f;
+    private const float jumpDuration = 0.75f;
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -93,15 +96,29 @@ public class PlayerController : MonoBehaviour
     {
         if (context.phase == InputActionPhase.Performed && characterController.isGrounded)
         {
-            // Apply jump force
-            Vector3 jumpDirection = new Vector3(0, jumpPower, 0);
-            characterController.Move(jumpDirection);
+            StartCoroutine(JumpCoroutine());
         }
         else if (context.phase == InputActionPhase.Canceled)
         {
-            
+            StopCoroutine(JumpCoroutine());
+            jumping = false;
         }
     }
+
+    IEnumerator JumpCoroutine()
+    {
+        jumping = true;
+        jumpTime = 0f;
+
+        while (jumpTime < jumpDuration)
+        {
+            jumpTime += Time.deltaTime;
+            yield return null;
+        }
+
+        jumping = false;
+    }
+
 
     void Update()
     {
@@ -113,14 +130,20 @@ public class PlayerController : MonoBehaviour
         cameraRight.Normalize();
 
         Vector3 movement = cameraForward * movementY + cameraRight * movementX;
+        Vector3 movementJump = Vector3.zero;
+        
+        if (characterController.isGrounded)
+        {
+            gravityForce = Vector3.zero;
+        }
+        if (jumping)
+        {
+            float jumpProgress = jumpTime / jumpDuration;
+            movementJump.y += jumpPower * (1 - jumpProgress * jumpProgress - jumpProgress * jumpProgress * jumpProgress); 
+        }
+        gravityForce.y -= gravity * Time.deltaTime;
         movement.Normalize();
 
-       
-            // Adjust for gravity
-        movement.y -= gravity * Time.deltaTime;
-        
-
-        // Apply movement using CharacterController
-        characterController.Move(movement * speed * Time.deltaTime);
+        characterController.Move((movement * speed * Time.deltaTime) + (movementJump) + gravityForce);
     }
 }
