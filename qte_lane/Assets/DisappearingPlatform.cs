@@ -24,7 +24,6 @@ public class DisappearingPlatform : MonoBehaviour
             elapsedTime += Time.deltaTime; 
             if (elapsedTime >= 1.1f && !audioSource.isPlaying)
             {
-                Debug.Log("play");
                 audioSource.Play();
             }
             if (elapsedTime >= disappearTime)

@@ -6,16 +6,19 @@ public class PlayerCollisionHandler : MonoBehaviour
     public float knockbackForce = 12f;
     public float strongKnockbackForce = 20f;
     public float knockbackDuration = 0.5f;
+    public GameObject enemySpawner;
+    public GameObject objectToRotate; // The world
 
     private CharacterController characterController;
-    private AudioSource audioSource; 
+    private AudioSource audioSource;
+    private PlayerController playerController;
 
     void Start()
     {
         GameObject parentObject = transform.parent.gameObject;
         characterController = parentObject.GetComponent<CharacterController>();
+        playerController = parentObject.GetComponent<PlayerController>(); // Get the PlayerController component
 
-        PlayerController playerController = parentObject.GetComponent<PlayerController>();
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
@@ -47,12 +50,43 @@ public class PlayerCollisionHandler : MonoBehaviour
         }
         if (other.gameObject.CompareTag("Spawner"))
         {
-            Vector3 collisionPoint = other.ClosestPoint(transform.position);
-            Vector3 knockbackDirection = (collisionPoint - transform.position).normalized;
-            StartCoroutine(KnockbackPlayer(knockbackDirection));
-            StartCoroutine(HalvePlayerSpeed());
-            //
+            GameObject[] spawners = GameObject.FindGameObjectsWithTag("Spawner");
+            foreach (GameObject spawner in spawners)
+            {
+                Destroy(spawner);
+            }
+
+            float originalGravity = playerController.gravity;
+            playerController.gravity = -originalGravity;
+            StartCoroutine(ResetGravity(originalGravity));
+            enemySpawner.SetActive(false);
+            if (objectToRotate != null)
+            {
+                StartCoroutine(RotateObject(objectToRotate, 180f, 0.5f));
+            }
         }
+    }
+
+    IEnumerator ResetGravity(float originalGravity)
+    {
+        yield return new WaitForSeconds(0.5f);
+        playerController.gravity = originalGravity;
+    }
+
+    IEnumerator RotateObject(GameObject obj, float targetAngle, float duration)
+    {
+        Quaternion startRotation = obj.transform.rotation;
+        Quaternion endRotation = Quaternion.Euler(targetAngle, 0, 0) * startRotation;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            obj.transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        obj.transform.rotation = endRotation; // Ensure the final rotation is exactly as intended
     }
 
     IEnumerator KnockbackPlayer(Vector3 knockbackDirection)
@@ -91,7 +125,6 @@ public class PlayerCollisionHandler : MonoBehaviour
 
         playerController.speed = 2.5f;
 
- 
         if (audioSource != null && !audioSource.isPlaying)
         {
             audioSource.Play();
