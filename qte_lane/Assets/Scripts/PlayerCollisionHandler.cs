@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class PlayerCollisionHandler : MonoBehaviour
 {
+
+
     public float knockbackForce = 12f;
     public float strongKnockbackForce = 20f;
     public float knockbackDuration = 0.5f;
@@ -84,7 +86,7 @@ public class PlayerCollisionHandler : MonoBehaviour
                 win = true;
                 winScreen.SetActive(true);
                 winSound.Play();
-                RestartSceneAfterDelay(4.5f);
+                StartCoroutine(RestartSceneAfterDelay(4.5f));
             }
             
         }
@@ -96,15 +98,23 @@ public class PlayerCollisionHandler : MonoBehaviour
                 loss = true;
                 lossScreen.SetActive(true);
                 lossSound.Play();
-                RestartSceneAfterDelay(3f);
+                StartCoroutine(RestartSceneAfterDelay(3f));
             }
 
         }
     }
     IEnumerator RestartSceneAfterDelay(float delay)
     {
+
         yield return new WaitForSeconds(delay);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
+        ResetLevel();
+    }
+    void ResetLevel()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(scene.name);
+
+        //score 0
     }
     IEnumerator ResetGravity(float originalGravity)
     {
@@ -117,7 +127,11 @@ public class PlayerCollisionHandler : MonoBehaviour
         Quaternion startRotation = obj.transform.rotation;
         Quaternion endRotation = Quaternion.Euler(targetAngle, 0, 0) * startRotation;
         float elapsedTime = 0f;
-
+        CameraController cameraController = FindObjectOfType<CameraController>();
+        if (cameraController != null)
+        {
+            cameraController.AddToOffset(new Vector3(6f, 0f, 0f));
+        }
         while (elapsedTime < duration)
         {
             obj.transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / duration);
@@ -125,7 +139,9 @@ public class PlayerCollisionHandler : MonoBehaviour
             yield return null;
         }
 
-        obj.transform.rotation = endRotation; // Ensure the final rotation is exactly as intended
+        obj.transform.rotation = endRotation;
+
+        
     }
 
     IEnumerator KnockbackPlayer(Vector3 knockbackDirection)
