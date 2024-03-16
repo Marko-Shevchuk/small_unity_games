@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections;
+using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
 
 public class PlayerCollisionHandler : MonoBehaviour
 {
@@ -10,8 +12,16 @@ public class PlayerCollisionHandler : MonoBehaviour
     public GameObject objectToRotate; // The world
 
     private CharacterController characterController;
-    private AudioSource audioSource;
+    public AudioSource criticalHit;
+    public AudioSource gravityShift;
     private PlayerController playerController;
+
+    public GameObject winScreen;
+    public GameObject lossScreen;
+    private bool win = false;
+    private bool loss = false;
+    public AudioSource winSound;
+    public AudioSource lossSound;
 
     void Start()
     {
@@ -19,10 +29,9 @@ public class PlayerCollisionHandler : MonoBehaviour
         characterController = parentObject.GetComponent<CharacterController>();
         playerController = parentObject.GetComponent<PlayerController>(); // Get the PlayerController component
 
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
+        if (criticalHit == null || gravityShift == null)
         {
-            Debug.LogError("No AudioSource component found on the GameObject. Please add an AudioSource component.");
+            Debug.LogError("No AudioSource source found for the GameObject");
         }
     }
 
@@ -55,21 +64,51 @@ public class PlayerCollisionHandler : MonoBehaviour
             {
                 Destroy(spawner);
             }
-
+            if (gravityShift != null && !gravityShift.isPlaying)
+            {
+                gravityShift.Play();
+            }
             float originalGravity = playerController.gravity;
             playerController.gravity = -originalGravity;
             StartCoroutine(ResetGravity(originalGravity));
             enemySpawner.SetActive(false);
             if (objectToRotate != null)
             {
-                StartCoroutine(RotateObject(objectToRotate, 180f, 0.5f));
+                StartCoroutine(RotateObject(objectToRotate, 180f, 1.3f));
             }
         }
-    }
+        if (other.gameObject.CompareTag("Goal"))
+        {
+            if (!loss && !win)
+            {
+                win = true;
+                winScreen.SetActive(true);
+                winSound.Play();
+                RestartSceneAfterDelay(4.5f);
+            }
+            
+        }
+        if (other.gameObject.CompareTag("Loss"))
+        {
+            //score 0
+            if (!loss && !win)
+            {
+                loss = true;
+                lossScreen.SetActive(true);
+                lossSound.Play();
+                RestartSceneAfterDelay(3f);
+            }
 
+        }
+    }
+    IEnumerator RestartSceneAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
+    }
     IEnumerator ResetGravity(float originalGravity)
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.6f);
         playerController.gravity = originalGravity;
     }
 
@@ -125,13 +164,13 @@ public class PlayerCollisionHandler : MonoBehaviour
 
         playerController.speed = 2.5f;
 
-        if (audioSource != null && !audioSource.isPlaying)
+        if (criticalHit != null && !criticalHit.isPlaying)
         {
-            audioSource.Play();
+            criticalHit.Play();
         }
 
         yield return new WaitForSeconds(5f);
 
-        playerController.speed = 5f;
+        playerController.speed = 6f;
     }
 }

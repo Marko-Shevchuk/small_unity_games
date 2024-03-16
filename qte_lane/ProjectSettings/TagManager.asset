@@ -8,6 +8,8 @@ TagManager:
   - StrongObstacle
   - Enemy
   - Spawner
+  - Goal
+  - Loss
   layers:
   - Default
   - TransparentFX

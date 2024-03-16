@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     private float movementX;
     private float movementY;
     public float lookSpeed = 0.15f;
-    public float speed = 5f;
+    public float speed = 6f;
     public float jumpPower = 10f;
     public float gravity = 0.981f;
     private Vector3 gravityForce = Vector3.zero;
