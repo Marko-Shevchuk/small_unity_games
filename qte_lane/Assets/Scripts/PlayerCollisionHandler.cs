@@ -45,13 +45,13 @@ public class PlayerCollisionHandler : MonoBehaviour
             Vector3 knockbackDirection = (collisionPoint - transform.position).normalized;
             StartCoroutine(KnockbackPlayer(knockbackDirection));
         }
-        if (other.gameObject.CompareTag("StrongObstacle"))
+        else if (other.gameObject.CompareTag("StrongObstacle"))
         {
             Vector3 collisionPoint = other.ClosestPoint(transform.position);
             Vector3 knockbackDirection = (collisionPoint - transform.position).normalized;
             StartCoroutine(StrongKnockbackPlayer(knockbackDirection));
         }
-        if (other.gameObject.CompareTag("Enemy"))
+        else if (other.gameObject.CompareTag("Enemy"))
         {
             Vector3 collisionPoint = other.ClosestPoint(transform.position);
             Vector3 knockbackDirection = (collisionPoint - transform.position).normalized;
@@ -59,7 +59,7 @@ public class PlayerCollisionHandler : MonoBehaviour
 
             StartCoroutine(HalvePlayerSpeed());
         }
-        if (other.gameObject.CompareTag("Spawner"))
+        else if (other.gameObject.CompareTag("Spawner"))
         {
             GameObject[] spawners = GameObject.FindGameObjectsWithTag("Spawner");
             foreach (GameObject spawner in spawners)
@@ -79,7 +79,7 @@ public class PlayerCollisionHandler : MonoBehaviour
                 StartCoroutine(RotateObject(objectToRotate, 180f, 1.3f));
             }
         }
-        if (other.gameObject.CompareTag("Goal"))
+        else if (other.gameObject.CompareTag("Goal"))
         {
             if (!loss && !win)
             {
@@ -90,7 +90,7 @@ public class PlayerCollisionHandler : MonoBehaviour
             }
             
         }
-        if (other.gameObject.CompareTag("Loss"))
+        else if (other.gameObject.CompareTag("Loss"))
         {
             //score 0
             if (!loss && !win)
@@ -103,19 +103,7 @@ public class PlayerCollisionHandler : MonoBehaviour
 
         }
     }
-    IEnumerator RestartSceneAfterDelay(float delay)
-    {
-
-        yield return new WaitForSeconds(delay);
-        ResetLevel();
-    }
-    void ResetLevel()
-    {
-        Scene scene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(scene.name);
-
-        //score 0
-    }
+    
     IEnumerator ResetGravity(float originalGravity)
     {
         yield return new WaitForSeconds(0.6f);
@@ -188,5 +176,18 @@ public class PlayerCollisionHandler : MonoBehaviour
         yield return new WaitForSeconds(5f);
 
         playerController.speed = 6f;
+    }
+    IEnumerator RestartSceneAfterDelay(float delay)
+    {
+
+        yield return new WaitForSeconds(delay);
+        ResetLevel();
+    }
+    void ResetLevel()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(scene.name);
+
+        //score 0
     }
 }

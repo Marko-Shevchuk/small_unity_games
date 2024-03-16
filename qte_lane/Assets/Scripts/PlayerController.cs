@@ -24,6 +24,12 @@ public class PlayerController : MonoBehaviour
     private bool jumping = false;
     private float jumpTime = 0f;
     private const float jumpDuration = 0.75f;
+
+
+    private Vector3 cameraForward;
+    private Vector3 cameraRight;
+    private float rotationX;
+    private float rotationY;
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -87,21 +93,16 @@ public class PlayerController : MonoBehaviour
         lookX = lookVector.x;
         lookY = lookVector.y;
 
-        float rotationX = mainCamera.transform.localEulerAngles.y + lookX * lookSpeed;
-        float rotationY = mainCamera.transform.localEulerAngles.x - lookY * lookSpeed;
+        rotationX = mainCamera.transform.localEulerAngles.y + lookX * lookSpeed;
+        rotationY = mainCamera.transform.localEulerAngles.x - lookY * lookSpeed;
         mainCamera.transform.localEulerAngles = new Vector3(rotationY, rotationX, 0);
     }
 
     void OnJump(InputAction.CallbackContext context)
     {
-        if (context.phase == InputActionPhase.Performed && characterController.isGrounded)
+        if (characterController.isGrounded && !jumping)
         {
             StartCoroutine(JumpCoroutine());
-        }
-        else if (context.phase == InputActionPhase.Canceled)
-        {
-            StopCoroutine(JumpCoroutine());
-            jumping = false;
         }
     }
 
@@ -116,14 +117,13 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
 
-        jumping = false;
+        jumping = false; // Reset the jumping flag to allow the coroutine to be called again
     }
-
 
     void Update()
     {
-        Vector3 cameraForward = mainCamera.transform.forward;
-        Vector3 cameraRight = mainCamera.transform.right;
+        cameraForward = mainCamera.transform.forward;
+        cameraRight = mainCamera.transform.right;
         cameraForward.y = 0;
         cameraRight.y = 0;
         cameraForward.Normalize();
@@ -131,7 +131,7 @@ public class PlayerController : MonoBehaviour
 
         Vector3 movement = cameraForward * movementY + cameraRight * movementX;
         Vector3 movementJump = Vector3.zero;
-        
+
         if (characterController.isGrounded)
         {
             gravityForce = Vector3.zero;
@@ -139,7 +139,7 @@ public class PlayerController : MonoBehaviour
         if (jumping)
         {
             float jumpProgress = jumpTime / jumpDuration;
-            movementJump.y += jumpPower * (1 - jumpProgress * jumpProgress - jumpProgress * jumpProgress * jumpProgress); 
+            movementJump.y += jumpPower * (1 - jumpProgress * jumpProgress - jumpProgress * jumpProgress * jumpProgress);
         }
         gravityForce.y -= gravity * Time.deltaTime;
         movement.Normalize();
