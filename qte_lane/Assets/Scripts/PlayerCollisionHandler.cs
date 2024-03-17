@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class PlayerCollisionHandler : MonoBehaviour
 {
@@ -19,12 +20,16 @@ public class PlayerCollisionHandler : MonoBehaviour
     private PlayerController playerController;
 
     public GameObject winScreen;
+    public TMP_Text winTimeText;
     public GameObject lossScreen;
+    public GameObject condemnScreen;
     private bool win = false;
     private bool loss = false;
     public AudioSource winSound;
     public AudioSource lossSound;
 
+    public GameObject progressTrackerObject;
+    private ProgressTracker progressTracker;
     void Start()
     {
         GameObject parentObject = transform.parent.gameObject;
@@ -35,6 +40,7 @@ public class PlayerCollisionHandler : MonoBehaviour
         {
             Debug.LogError("No AudioSource source found for the GameObject");
         }
+        progressTracker = progressTrackerObject.GetComponent<ProgressTracker>();
     }
 
     void OnTriggerEnter(Collider other)
@@ -81,25 +87,14 @@ public class PlayerCollisionHandler : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("Goal"))
         {
-            if (!loss && !win)
-            {
-                win = true;
-                winScreen.SetActive(true);
-                winSound.Play();
-                StartCoroutine(RestartSceneAfterDelay(4.5f));
-            }
-            
+            TriggerWin();
+
+
         }
         else if (other.gameObject.CompareTag("Loss"))
         {
             //score 0
-            if (!loss && !win)
-            {
-                loss = true;
-                lossScreen.SetActive(true);
-                lossSound.Play();
-                StartCoroutine(RestartSceneAfterDelay(3f));
-            }
+            TriggerLoss();
 
         }
     }
@@ -112,6 +107,7 @@ public class PlayerCollisionHandler : MonoBehaviour
 
     IEnumerator RotateObject(GameObject obj, float targetAngle, float duration)
     {
+        InvertGoal();
         Quaternion startRotation = obj.transform.rotation;
         Quaternion endRotation = Quaternion.Euler(targetAngle, 0, 0) * startRotation;
         float elapsedTime = 0f;
@@ -189,5 +185,50 @@ public class PlayerCollisionHandler : MonoBehaviour
         SceneManager.LoadScene(scene.name);
 
         //score 0
+    }
+    public void TriggerWin()
+    {
+        if (!loss && !win)
+        {
+            win = true;
+            winScreen.SetActive(true);
+            winSound.Play();
+            StartCoroutine(RestartSceneAfterDelay(4.5f));
+            float winTime = Time.timeSinceLevelLoad;
+            winTimeText.text = "Win Time: " + winTime.ToString("F2") + " seconds";
+        }
+        
+
+    }
+
+    public void TriggerLoss()
+    {
+        if (!loss && !win)
+        {
+            loss = true;
+            lossScreen.SetActive(true);
+            lossSound.Play();
+            StartCoroutine(RestartSceneAfterDelay(3f));
+        }
+    }
+    public void EnableRedOverlay()
+    {
+        if (!loss && !win)
+        {
+            condemnScreen.SetActive(true);
+            if (criticalHit != null && !criticalHit.isPlaying)
+            {
+                criticalHit.Play();
+            }
+        }
+        
+    }
+    public void DisableRedOverlay()
+    {
+        condemnScreen.SetActive(false);
+    }
+    public void InvertGoal()
+    {
+        progressTracker.invert = true;
     }
 }
