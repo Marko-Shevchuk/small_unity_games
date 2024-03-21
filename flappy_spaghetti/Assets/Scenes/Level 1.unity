@@ -334,9 +334,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a02a6efed4dd09d4699a0f749f7298ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pipe: {fileID: 3185888793248831224, guid: e12c4d46b53d6204cba8a793eec6dd8b, type: 3}
-  spawnRate: 2.7
-  heightOffset: 13
+  pipePrefab: {fileID: 3185888793248831224, guid: e12c4d46b53d6204cba8a793eec6dd8b, type: 3}
+  spawnPeriod: 3.1
+  heightOffset: 11
   logic: {fileID: 0}
 --- !u!4 &487032745
 Transform:
@@ -347,7 +347,7 @@ Transform:
   m_GameObject: {fileID: 487032743}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 33, y: 0, z: 0}
+  m_LocalPosition: {x: 30, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1428,7 +1428,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

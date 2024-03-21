@@ -15,10 +15,10 @@ public class PipeMoveScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (transform.position.x < deadZone)
+        /*if (transform.position.x < deadZone)
         {
             Destroy(gameObject);
-        }
+        }*/
         transform.position += (Vector3.left * moveSpeed) * Time.deltaTime;
     }
 }

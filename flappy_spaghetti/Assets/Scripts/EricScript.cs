@@ -28,6 +28,7 @@ public class BirdScript : MonoBehaviour
         if (myRigidbody.position.y < -17 || myRigidbody.position.y > 17)
         {
             anim.SetTrigger("Die");
+            birdIsAlive = false;
             logic.gameOver();
             
         }
@@ -36,8 +37,9 @@ public class BirdScript : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         anim.SetTrigger("Die");
+        birdIsAlive = false;
         logic.gameOver();
         
-        birdIsAlive = false;
+        
     }
 }
