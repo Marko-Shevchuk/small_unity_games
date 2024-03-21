@@ -13,7 +13,7 @@ public class BirdScript : MonoBehaviour
     void Start()
     {
         logic = GameObject.FindGameObjectWithTag("Logic").GetComponent<LogicScript>();
-        myRigidbody.velocity = Vector2.up * flapStrength * 2;
+        myRigidbody.velocity = Vector2.up * flapStrength * 1.6f;
         logic.theme.Play();
         anim = GetComponent<Animator>();
     }
