@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine.UI;	
 using UnityEngine.SceneManagement;
+using static UnityEngine.UI.Image;
+using System.Security;
 
 namespace Roguelike
 {
@@ -21,9 +23,11 @@ namespace Roguelike
 		public AudioClip drinkSound2;				
 		public AudioClip gameOverSound;				
 		
-		private Animator animator;					
+		private Animator animator;		
+		private BoxCollider2D boxCollider;
 		private int food;
 		private bool isDecrementingFood = false;
+		private float speed = 1.5f;
 #if UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
         private Vector2 touchOrigin = -Vector2.one;	//Used to store location of screen touch origin for mobile controls.
 #endif
@@ -33,7 +37,8 @@ namespace Roguelike
 		protected override void Start ()
 		{
 			animator = GetComponent<Animator>();
-			food = GameManager.instance.playerFoodPoints;
+            boxCollider = GetComponent<BoxCollider2D>();
+            food = GameManager.instance.playerFoodPoints;
 			foodText.text = "Food: " + food;
 			base.Start ();
 		}
@@ -50,16 +55,19 @@ namespace Roguelike
 		{
 			if(!GameManager.instance.playersTurn) return;
 			
-			int horizontal = 0;  	
-			int vertical = 0;		
+			int originalHorizontal = 0;  	
+			int originalVertical = 0;
+            int horizontal = 0;
+            int vertical = 0;
 
 #if UNITY_STANDALONE || UNITY_WEBPLAYER
-			
-			
-			horizontal = (int) (Input.GetAxisRaw ("Horizontal"));
 
-			vertical = (int) (Input.GetAxisRaw ("Vertical"));
-			
+
+            originalHorizontal = (int) (Input.GetAxisRaw ("Horizontal"));
+
+            originalVertical = (int) (Input.GetAxisRaw ("Vertical"));
+			horizontal = originalHorizontal;
+			vertical = originalVertical;
 
 			if(horizontal != 0)
 			{
@@ -112,9 +120,35 @@ namespace Roguelike
 
 				AttemptMove<Wall> (horizontal, vertical);
 			}
-		}
-		
-		protected override void AttemptMove <T> (int xDir, int yDir)
+            Vector2 movement = new Vector2(originalHorizontal, originalVertical);
+
+            if (movement.magnitude > 1f)
+            {
+                movement.Normalize();
+            }
+
+            // Apply the movement
+            Vector2 newPosition = transform.position + new Vector3(movement.x, movement.y, 0) * speed * Time.deltaTime;
+            transform.position = newPosition;
+        }
+        protected override bool Move(int xDir, int yDir, out RaycastHit2D hit)
+        {
+
+            Vector2 start = transform.position;
+            Vector2 end = start + new Vector2(xDir, yDir);
+            boxCollider.enabled = false;
+            hit = Physics2D.Linecast(start, end, blockingLayer);
+            boxCollider.enabled = true;
+
+            if (hit.transform == null)
+            {
+                /*StartCoroutine(SmoothMovement(end));*/
+                return true;
+            }
+            return false;
+        }
+
+        protected override void AttemptMove <T> (int xDir, int yDir)
 		{
             if (!isDecrementingFood)
             {
