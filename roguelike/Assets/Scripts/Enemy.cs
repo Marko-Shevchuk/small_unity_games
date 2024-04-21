@@ -23,8 +23,8 @@ namespace Roguelike
 			animator = GetComponent<Animator> ();
 			
 			target = GameObject.FindGameObjectWithTag ("Player").transform;
-			
-			base.Start ();
+            moveTime = 0.4f;
+            base.Start ();
 		}
 		
 		protected override void AttemptMove <T> (int xDir, int yDir)
