@@ -22,7 +22,8 @@ namespace Roguelike
 		public AudioClip gameOverSound;				
 		
 		private Animator animator;					
-		private int food;                          
+		private int food;
+		private bool isDecrementingFood = false;
 #if UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
         private Vector2 touchOrigin = -Vector2.one;	//Used to store location of screen touch origin for mobile controls.
 #endif
@@ -115,27 +116,43 @@ namespace Roguelike
 		
 		protected override void AttemptMove <T> (int xDir, int yDir)
 		{
-			//todo fix
-			food--;
-			
-			foodText.text = "Food: " + food;
-			
-			base.AttemptMove <T> (xDir, yDir);
-			
+            if (!isDecrementingFood)
+            {
+                StartCoroutine(DecrementFood());
+                foodText.text = "Food: " + food;
 
-			RaycastHit2D hit;
+                base.AttemptMove<T>(xDir, yDir);
 
-			if (Move (xDir, yDir, out hit)) 
-			{
-				SoundManager.instance.RandomizeSfx (moveSound1, moveSound2);
-			}
+
+                RaycastHit2D hit;
+
+                if (Move(xDir, yDir, out hit))
+                {
+                    SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
+                }
+            }
+
+            
 			
 			CheckIfGameOver ();
 			
-			GameManager.instance.playersTurn = false;
+			/*GameManager.instance.playersTurn = false;*/
 		}
-		
-		protected override void OnCantMove <T> (T component)
+        private IEnumerator DecrementFood()
+        {
+            isDecrementingFood = true;
+
+            yield return new WaitForSeconds(0.75f);
+
+            if (food > -1)
+            {
+                food--;
+                foodText.text = "Food: " + food;
+            }
+
+            isDecrementingFood = false;
+        }
+        protected override void OnCantMove <T> (T component)
 		{
 			Wall hitWall = component as Wall;
 			hitWall.DamageWall (wallDamage);
