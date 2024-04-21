@@ -85,7 +85,7 @@ namespace Roguelike
 		
 		void Update()
 		{
-			if(playersTurn || enemiesMoving || doingSetup) //todo fix
+			if(enemiesMoving || doingSetup) //todo fix
 				return;
 			
 			StartCoroutine (MoveEnemies ());
