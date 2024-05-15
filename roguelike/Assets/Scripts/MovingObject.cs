@@ -25,7 +25,7 @@ namespace Roguelike
 		}
 		
 	
-		protected bool Move (int xDir, int yDir, out RaycastHit2D hit)
+		protected virtual bool Move (int xDir, int yDir, out RaycastHit2D hit)
 		{
 			
 			Vector2 start = transform.position;

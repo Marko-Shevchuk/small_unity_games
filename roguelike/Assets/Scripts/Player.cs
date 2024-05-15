@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine.UI;	
 using UnityEngine.SceneManagement;
+using static UnityEngine.UI.Image;
+using System.Security;
 
 namespace Roguelike
 {
@@ -18,12 +20,15 @@ namespace Roguelike
 		public AudioClip eatSound1;					
 		public AudioClip eatSound2;					
 		public AudioClip drinkSound1;				
-		public AudioClip drinkSound2;				
-		public AudioClip gameOverSound;				
-		
-		private Animator animator;					
+		public AudioClip drinkSound2;
+		public AudioClip gameOverSound;
+
+		private Rigidbody2D rb2D;
+        private Animator animator;		
+		private BoxCollider2D boxCollider;
 		private int food;
 		private bool isDecrementingFood = false;
+		private float speed = 200f;
 #if UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
         private Vector2 touchOrigin = -Vector2.one;	//Used to store location of screen touch origin for mobile controls.
 #endif
@@ -33,7 +38,9 @@ namespace Roguelike
 		protected override void Start ()
 		{
 			animator = GetComponent<Animator>();
-			food = GameManager.instance.playerFoodPoints;
+            boxCollider = GetComponent<BoxCollider2D>();
+            rb2D = GetComponent<Rigidbody2D>();
+            food = GameManager.instance.playerFoodPoints;
 			foodText.text = "Food: " + food;
 			base.Start ();
 		}
@@ -50,16 +57,19 @@ namespace Roguelike
 		{
 			if(!GameManager.instance.playersTurn) return;
 			
-			int horizontal = 0;  	
-			int vertical = 0;		
+			int originalHorizontal = 0;  	
+			int originalVertical = 0;
+            int horizontal = 0;
+            int vertical = 0;
 
 #if UNITY_STANDALONE || UNITY_WEBPLAYER
-			
-			
-			horizontal = (int) (Input.GetAxisRaw ("Horizontal"));
 
-			vertical = (int) (Input.GetAxisRaw ("Vertical"));
-			
+
+            originalHorizontal = (int) (Input.GetAxisRaw ("Horizontal"));
+
+            originalVertical = (int) (Input.GetAxisRaw ("Vertical"));
+			horizontal = originalHorizontal;
+			vertical = originalVertical;
 
 			if(horizontal != 0)
 			{
@@ -112,9 +122,59 @@ namespace Roguelike
 
 				AttemptMove<Wall> (horizontal, vertical);
 			}
-		}
-		
-		protected override void AttemptMove <T> (int xDir, int yDir)
+            Vector2 movement = new Vector2(originalHorizontal, originalVertical);
+			Vector2 step;
+            if (movement.magnitude > 1f)
+            {
+                movement.Normalize();
+            }
+            boxCollider.enabled = false;
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, movement, 0.1f, blockingLayer);
+            boxCollider.enabled = true;
+            if (hit.collider != null)
+            {
+                step = new Vector3(movement.x, movement.y, 0) * speed * Time.deltaTime * 0.22f;
+            }
+			else
+			{
+                step = new Vector3(movement.x, movement.y, 0) * speed * Time.deltaTime;
+            }
+            
+            rb2D.velocity = step;
+			ClampPlayerPosition();
+        }
+        protected override bool Move(int xDir, int yDir, out RaycastHit2D hit)
+        {
+
+            Vector2 start = transform.position;
+            Vector2 end = start + new Vector2(xDir, yDir);
+            boxCollider.enabled = false;
+            hit = Physics2D.Linecast(start, end, blockingLayer);
+            boxCollider.enabled = true;
+
+            if (hit.transform == null)
+            {
+                /*StartCoroutine(SmoothMovement(end));*/
+                return true;
+            }
+            return false;
+        }
+		public void ClampPlayerPosition()
+		{
+			Vector2 currentPosition = rb2D.position;
+			if (currentPosition.x < -0.2f || currentPosition.x > 7.2f || currentPosition.y < -0.2f || currentPosition.y > 7.2f)
+			{
+                float newX = Mathf.Clamp(currentPosition.x, -0.2f, 7.2f);
+                float newY = Mathf.Clamp(currentPosition.y, -0.2f, 7.2f);
+
+                Vector2 newPosition = new Vector2(newX, newY);
+
+                rb2D.MovePosition(newPosition);
+            }	
+            
+        }
+
+        protected override void AttemptMove <T> (int xDir, int yDir)
 		{
             if (!isDecrementingFood)
             {
@@ -168,7 +228,9 @@ namespace Roguelike
 				
 				//Disable the player object since level is over.
 				enabled = false;
-			}
+				rb2D.velocity = new Vector2(0f, 0f); 
+
+            }
 			
 			
 			else if(other.tag == "Food")

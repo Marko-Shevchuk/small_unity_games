@@ -115,7 +115,7 @@ namespace Roguelike
 			
 			LayoutObjectAtRandom (foodTiles, foodCount.minimum, foodCount.maximum);
 			
-			int enemyCount = (int)Mathf.Log(level, 1.5f);
+			int enemyCount = (int)Mathf.Log(level, 1.5f) + 1;
 			
 			LayoutObjectAtRandom (enemyTiles, enemyCount, enemyCount);
 			
