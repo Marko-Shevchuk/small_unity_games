@@ -20,14 +20,15 @@ namespace Roguelike
 		public AudioClip eatSound1;					
 		public AudioClip eatSound2;					
 		public AudioClip drinkSound1;				
-		public AudioClip drinkSound2;				
-		public AudioClip gameOverSound;				
-		
-		private Animator animator;		
+		public AudioClip drinkSound2;
+		public AudioClip gameOverSound;
+
+		private Rigidbody2D rb2D;
+        private Animator animator;		
 		private BoxCollider2D boxCollider;
 		private int food;
 		private bool isDecrementingFood = false;
-		private float speed = 1.5f;
+		private float speed = 200f;
 #if UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
         private Vector2 touchOrigin = -Vector2.one;	//Used to store location of screen touch origin for mobile controls.
 #endif
@@ -38,6 +39,7 @@ namespace Roguelike
 		{
 			animator = GetComponent<Animator>();
             boxCollider = GetComponent<BoxCollider2D>();
+            rb2D = GetComponent<Rigidbody2D>();
             food = GameManager.instance.playerFoodPoints;
 			foodText.text = "Food: " + food;
 			base.Start ();
@@ -121,15 +123,25 @@ namespace Roguelike
 				AttemptMove<Wall> (horizontal, vertical);
 			}
             Vector2 movement = new Vector2(originalHorizontal, originalVertical);
-
+			Vector2 step;
             if (movement.magnitude > 1f)
             {
                 movement.Normalize();
             }
-
-            // Apply the movement
-            Vector2 newPosition = transform.position + new Vector3(movement.x, movement.y, 0) * speed * Time.deltaTime;
-            transform.position = newPosition;
+            boxCollider.enabled = false;
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, movement, 0.1f, blockingLayer);
+            boxCollider.enabled = true;
+            if (hit.collider != null)
+            {
+                step = new Vector3(movement.x, movement.y, 0) * speed * Time.deltaTime * 0.22f;
+            }
+			else
+			{
+                step = new Vector3(movement.x, movement.y, 0) * speed * Time.deltaTime;
+            }
+            
+            rb2D.velocity = step;
+			ClampPlayerPosition();
         }
         protected override bool Move(int xDir, int yDir, out RaycastHit2D hit)
         {
@@ -146,6 +158,20 @@ namespace Roguelike
                 return true;
             }
             return false;
+        }
+		public void ClampPlayerPosition()
+		{
+			Vector2 currentPosition = rb2D.position;
+			if (currentPosition.x < -0.2f || currentPosition.x > 7.2f || currentPosition.y < -0.2f || currentPosition.y > 7.2f)
+			{
+                float newX = Mathf.Clamp(currentPosition.x, -0.2f, 7.2f);
+                float newY = Mathf.Clamp(currentPosition.y, -0.2f, 7.2f);
+
+                Vector2 newPosition = new Vector2(newX, newY);
+
+                rb2D.MovePosition(newPosition);
+            }	
+            
         }
 
         protected override void AttemptMove <T> (int xDir, int yDir)
@@ -202,7 +228,9 @@ namespace Roguelike
 				
 				//Disable the player object since level is over.
 				enabled = false;
-			}
+				rb2D.velocity = new Vector2(0f, 0f); 
+
+            }
 			
 			
 			else if(other.tag == "Food")
